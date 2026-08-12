@@ -1,1 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CinemaZoneBD</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #0b0b0f;
+      color: white;
+    }
+
+    header {
+      background: #15151c;
+      padding: 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      color: #ff3d3d;
+      font-size: 30px;
+      margin-bottom: 15px;
+    }
+
+    .search {
+      display: flex;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .search input {
+      flex: 1;
+      padding: 13px;
+      border: none;
+      outline: none;
+      border-radius: 8px 0 0 8px;
+      font-size: 16px;
+    }
+
+    .search button {
+      padding: 13px 20px;
+      border: none;
+      background: #ff3d3d;
+      color: white;
+      cursor: pointer;
+      border-radius: 0 8px 8px 0;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 25px;
+    }
+
+    #status {
+      text-align: center;
+      margin: 20px;
+      color: #aaa;
+    }
+
+    .movies {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 20px;
+    }
+
+    .movie {
+      background: #17171f;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .movie:hover {
+      transform: translateY(-5px);
+    }
+
+    .movie img {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+    }
+
+    .info {
+      padding: 12px;
+    }
+
+    .info h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .info p {
+      color: #aaa;
+      font-size: 13px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: #777;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>🎬 CinemaZoneBD</h1>
+
+  <div class="search">
+    <input id="searchInput" type="text" placeholder="Search movies...">
+    <button onclick="searchMovies()">Search</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="status">Loading popular movies...</div>
+  <div id="movies" class="movies"></div>
+</div>
+
+<footer>
+  © 2026 CinemaZoneBD
+</footer>
+
+<script>
+
+  // TMDB API KEY এখানে পরে বসাবে
+  const API_KEY = "YOUR_TMDB_API_KEY";
+
+  const IMAGE_URL = "https://image.tmdb.org/t/p/w500";
+
+  const moviesBox = document.getElementById("movies");
+  const statusBox = document.getElementById("status");
+
+  async function loadPopular() {
+
+    statusBox.innerText = "Loading movies...";
+
+    try {
+
+      const url =
+        `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=1`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      showMovies(data.results);
+
+      statusBox.innerText = "Popular Movies";
+
+    } catch (error) {
+
+      statusBox.innerText =
+        "API key বসানোর পর movies দেখাবে.";
+
+    }
+  }
+
+  async function searchMovies() {
+
+    const query =
+      document.getElementById("searchInput").value.trim();
+
+    if (!query) {
+      loadPopular();
+      return;
+    }
+
+    statusBox.innerText = "Searching...";
+
+    try {
+
+      const url =
+        `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(query)}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      showMovies(data.results);
+
+      statusBox.innerText =
+        `Search results for "${query}"`;
+
+    } catch (error) {
+
+      statusBox.innerText = "Something went wrong.";
+
+    }
+  }
+
+  function showMovies(movies) {
+
+    moviesBox.innerHTML = "";
+
+    if (!movies || movies.length === 0) {
+      moviesBox.innerHTML =
+        "<p>No movies found.</p>";
+      return;
+    }
+
+    movies.forEach(movie => {
+
+      const poster =
+        movie.poster_path
+        ? IMAGE_URL + movie.poster_path
+        : "https://via.placeholder.com/500x750?text=No+Poster";
+
+      const card = document.createElement("div");
+
+      card.className = "movie";
+
+      card.innerHTML = `
+        <img src="${poster}" alt="${movie.title}">
+        <div class="info">
+          <h3>${movie.title}</h3>
+          <p>⭐ ${movie.vote_average.toFixed(1)}</p>
+          <p>${movie.release_date || "Unknown"}</p>
+        </div>
+      `;
+
+      moviesBox.appendChild(card);
+
+    });
+  }
+
+  loadPopular();
+
+</script>
+
+</body>
+</html>
